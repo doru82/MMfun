@@ -10,7 +10,7 @@ MMfun este un app simplu pentru a lansa meme coins pe Avalanche (AVAX) cu un sin
 - Fee: 0.5 AVAX (test/real).
 
 ### Cum să folosești
-1. Deschide [link Vercel] în browser.
+1. Deschide https://mmfun.vercel.app/ în browser.
 2. Conectează wallet pe Fuji Testnet (Chain ID 43113).
 3. Completează câmpurile și launch.
 
