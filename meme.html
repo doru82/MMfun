@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVAX Meme Coin Launcher</title>
+    <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { color: #333; margin-bottom: 30px; }
+        .option-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option-box:hover { border-color: #667eea; background: #f0f4ff; }
+        .option-box.selected { border-color: #4CAF50; background: #e8f5e9; }
+        .option-box h3 { margin: 0 0 10px 0; color: #333; }
+        .option-box p { margin: 5px 0; color: #666; font-size: 14px; }
+        input { 
+            margin: 10px; 
+            padding: 12px; 
+            width: 100%; 
+            max-width: 400px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        button { 
+            padding: 12px 30px; 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 8px;
+            cursor: pointer; 
+            font-size: 16px;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #status { 
+            margin: 20px; 
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .wallet-info { margin: 15px 0; color: #666; font-size: 14px; }
+        .hidden { display: none; }
+        .cost-display {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .cost-display strong { color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Launch Meme Coin on AVAX</h1>
+        <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
+        <div class="wallet-info" id="walletInfo"></div>
+        
+        <div id="launchOptions" class="hidden">
+            <hr style="margin: 20px 0;">
+            <h2>Choose Launch Type:</h2>
+            
+            <div class="option-box" onclick="selectOption('simple')" id="simpleOption">
+                <h3>🎯 Simple Launch</h3>
+                <p>✅ Deploy token only</p>
+                <p>✅ You get 100% of supply</p>
+                <p>💰 Cost: 0.5 AVAX</p>
+            </div>
+            
+            <div class="option-box selected" onclick="selectOption('liquidity')" id="liquidityOption">
+                <h3>💧 Launch + Auto-Liquidity</h3>
+                <p>✅ Deploy + add liquidity on Pangolin</p>
+                <p>✅ 80% supply → liquidity pool</p>
+                <p>✅ 20% supply → you (for marketing)</p>
+                <p>✅ Token tradeable immediately!</p>
+                <p>💰 Cost: 0.5 AVAX + liquidity AVAX</p>
+            </div>
+        </div>
+        
+        <div id="launchForm" class="hidden">
+            <hr style="margin: 20px 0;">
+            <input id="name" placeholder="Token Name (ex: MyMeme)"><br>
+            <input id="symbol" placeholder="Symbol (ex: MM)"><br>
+            <input id="supply" type="number" placeholder="Total Supply (ex: 1000000)"><br>
+            
+            <div id="liquidityInputs" class="hidden">
+                <input id="liquidityAVAX" type="number" step="0.1" value="1" placeholder="AVAX for Liquidity (min 0.1)"><br>
+                <div class="cost-display">
+                    <strong>Total Cost:</strong> <span id="totalCost">1.5 AVAX</span><br>
+                    <small>(0.5 AVAX fee + <span id="liqAmount">1</span> AVAX liquidity)</small>
+                </div>
+            </div>
+            
+            <button onclick="launchToken()" id="launchBtn">Launch Token</button>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // ⚠️ ÎNLOCUIEȘTE ADRESA DE MAI JOS CU ADRESA NOULUI CONTRACT! ⚠️
+        const factoryAddress = '0xB018b6c6567b967C45b0F9a98a4dcD5E853c8F36';
+        
+        const abiSimple = [
+            "function launchToken(string memory name, string memory symbol, uint256 totalSupply) external payable returns (address)"
+        ];
+        
+        const abiWithLiquidity = [
+            "function launchTokenWithLiquidity(string memory name, string memory symbol, uint256 totalSupply, uint256 liquidityAVAX) external payable returns (address, uint256)",
+            "event TokenLaunched(address indexed token, address indexed creator, string name, string symbol, address liquidityPair, uint256 liquidityAmount)"
+        ];
+        
+        let provider, signer, userAddress;
+        let selectedMode = 'liquidity';
+
+        window.addEventListener('load', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    await connectWallet();
+                }
+            }
+        });
+
+        async function connectWallet() {
+            const statusDiv = document.getElementById('status');
+            const connectBtn = document.getElementById('connectBtn');
+            
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    statusDiv.innerHTML = '<div class="error">❌ No wallet detected! Please install MetaMask or Core Wallet.</div>';
+                    return;
+                }
+
+                statusDiv.innerHTML = '<div class="info">Connecting...</div>';
+                
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                const network = await provider.getNetwork();
+                if (network.chainId !== 43113) {
+                    statusDiv.innerHTML = '<div class="error">❌ Switch to Avalanche Fuji Testnet!</div>';
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0xA869' }],
+                        });
+                        setTimeout(connectWallet, 1000);
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0xA869',
+                                    chainName: 'Avalanche Fuji Testnet',
+                                    nativeCurrency: { name: 'AVAX', symbol: 'AVAX', decimals: 18 },
+                                    rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
+                                    blockExplorerUrls: ['https://testnet.snowtrace.io/']
+                                }]
+                            });
+                            setTimeout(connectWallet, 1000);
+                        }
+                    }
+                    return;
+                }
+                
+                const balance = await provider.getBalance(userAddress);
+                const balanceInAvax = ethers.utils.formatEther(balance);
+                
+                document.getElementById('walletInfo').innerHTML = `
+                    ✅ Connected: ${userAddress.substring(0,6)}...${userAddress.substring(38)}<br>
+                    💰 Balance: ${parseFloat(balanceInAvax).toFixed(4)} AVAX
+                `;
+                document.getElementById('launchOptions').classList.remove('hidden');
+                document.getElementById('launchForm').classList.remove('hidden');
+                connectBtn.innerHTML = '✅ Connected';
+                connectBtn.disabled = true;
+                statusDiv.innerHTML = '<div class="success">Ready! Choose launch type above 👆</div>';
+                
+                updateLiquidityInputs();
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function selectOption(mode) {
+            selectedMode = mode;
+            document.getElementById('simpleOption').classList.remove('selected');
+            document.getElementById('liquidityOption').classList.remove('selected');
+            document.getElementById(mode + 'Option').classList.add('selected');
+            updateLiquidityInputs();
+        }
+
+        function updateLiquidityInputs() {
+            const liquidityInputs = document.getElementById('liquidityInputs');
+            const launchBtn = document.getElementById('launchBtn');
+            
+            if (selectedMode === 'liquidity') {
+                liquidityInputs.classList.remove('hidden');
+                launchBtn.innerHTML = 'Launch + Add Liquidity';
+                updateCost();
+            } else {
+                liquidityInputs.classList.add('hidden');
+                launchBtn.innerHTML = 'Launch Token (0.5 AVAX)';
+            }
+        }
+
+        function updateCost() {
+            const liqAVAX = parseFloat(document.getElementById('liquidityAVAX').value) || 1;
+            const total = 0.5 + liqAVAX;
+            document.getElementById('totalCost').innerHTML = total.toFixed(2) + ' AVAX';
+            document.getElementById('liqAmount').innerHTML = liqAVAX.toFixed(2);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const liqInput = document.getElementById('liquidityAVAX');
+            if (liqInput) {
+                liqInput.addEventListener('input', updateCost);
+            }
+        });
+
+        async function launchToken() {
+            const statusDiv = document.getElementById('status');
+            const launchBtn = document.getElementById('launchBtn');
+            
+            if (!signer) {
+                statusDiv.innerHTML = '<div class="error">Connect wallet first!</div>';
+                return;
+            }
+            
+            const name = document.getElementById('name').value.trim();
+            const symbol = document.getElementById('symbol').value.trim();
+            const supply = document.getElementById('supply').value;
+            
+            if (!name || !symbol || !supply) {
+                statusDiv.innerHTML = '<div class="error">Fill all fields!</div>';
+                return;
+            }
+            
+            launchBtn.disabled = true;
+            launchBtn.innerHTML = 'Launching...';
+            
+            try {
+                if (selectedMode === 'simple') {
+                    const contract = new ethers.Contract(factoryAddress, abiSimple, signer);
+                    statusDiv.innerHTML = '<div class="info">⏳ Deploying token...</div>';
+                    
+                    const tx = await contract.launchToken(name, symbol, supply, { 
+                        value: ethers.utils.parseEther('0.5')
+                    });
+                    
+                    statusDiv.innerHTML = `<div class="info">⏳ Waiting for confirmation...<br>Tx: ${tx.hash}</div>`;
+                    const receipt = await tx.wait();
+                    const tokenAddr = receipt.events[0].args.token;
+                    
+                    statusDiv.innerHTML = `
+                        <div class="success">
+                            🎉 Token deployed!<br><br>
+                            <strong>Address:</strong> ${tokenAddr}<br><br>
+                            <a href="https://testnet.snowtrace.io/address/${tokenAddr}" target="_blank">View on Snowtrace →</a>
+                        </div>
+                    `;
+                    
+                } else {
+                    const contract = new ethers.Contract(factoryAddress, abiWithLiquidity, signer);
+                    const liqAVAX = document.getElementById('liquidityAVAX').value;
+                    
+                    if (parseFloat(liqAVAX) < 0.1) {
+                        statusDiv.innerHTML = '<div class="error">Minimum 0.1 AVAX for liquidity!</div>';
+                        launchBtn.disabled = false;
+                        launchBtn.innerHTML = 'Launch + Add Liquidity';
+                        return;
+                    }
+                    
+                    const totalValue = 0.5 + parseFloat(liqAVAX);
+                    
+                    statusDiv.innerHTML = '<div class="info">⏳ Deploying token + adding liquidity...</div>';
+                    
+                    const tx = await contract.launchTokenWithLiquidity(
+                        name, 
+                        symbol, 
+                        supply,
+                        ethers.utils.parseEther(liqAVAX),
+                        { value: ethers.utils.parseEther(totalValue.toString()) }
+                    );
+                    
+                    statusDiv.innerHTML = `<div class="info">⏳ Processing...<br>Tx: ${tx.hash}</div>`;
+                    const receipt = await tx.wait();
+                    
+                    const event = receipt.events.find(e => e.event === 'TokenLaunched');
+                    const tokenAddr = event.args.token;
+                    
+                    statusDiv.innerHTML = `
+                        <div class="success">
+                            🎉 Success! Token launched with liquidity!<br><br>
+                            <strong>Token:</strong> ${tokenAddr}<br>
+                            <strong>You received:</strong> 20% supply (${supply * 0.2} tokens)<br>
+                            <strong>Liquidity:</strong> 80% supply on Pangolin<br><br>
+                            <a href="https://testnet.snowtrace.io/address/${tokenAddr}" target="_blank">View on Snowtrace →</a><br>
+                            <a href="https://app.pangolin.exchange/#/swap?outputCurrency=${tokenAddr}" target="_blank">Trade on Pangolin →</a>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('name').value = '';
+                document.getElementById('symbol').value = '';
+                document.getElementById('supply').value = '';
+                
+            } catch (error) {
+                console.error('Launch error:', error);
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            } finally {
+                launchBtn.disabled = false;
+                updateLiquidityInputs();
+            }
+        }
+
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', () => location.reload());
+            window.ethereum.on('chainChanged', () => location.reload());
+        }
+    </script>
+</body>
+</html>
