@@ -1,25 +1,29 @@
-# MMfun - 1-Click Meme Coin Launcher on AVAX
+# MMFun - 1-Click Meme Coin Launcher on AVAX
 
-## Descriere
-MMfun este un app simplu pentru a lansa meme coins pe Avalanche (AVAX) cu un singur click. Folosește smart contract pe Fuji Testnet (pentru teste) sau Mainnet (real). Include opțiune de add liquidity auto pe Pangolin.
+### Description
+
+MMFun is a simple app for launching meme coins on Avalanche (AVAX) with a single click. It uses a smart contract on Fuji Testnet (for testing) or Mainnet (real). Includes an option for adding auto liquidity on Pangolin.
 
 ### Features
-- Conectare wallet (MetaMask/Core).
-- Completează nume, symbol, supply.
-- Launch token + liquidity opțional (80% in pool, 20% la tine).
-- Fee: 0.5 AVAX (test/real).
+Wallet connection (MetaMask/Core).
+Fill in name, symbol, supply.
+Launch token + optional liquidity (80% in pool, 20% to you).
+Fee: 0.5 AVAX (test/real).
 
-### Cum să folosești
-1. Deschide https://mmfun.vercel.app/ în browser.
-2. Conectează wallet pe Fuji Testnet (Chain ID 43113).
-3. Completează câmpurile și launch.
 
-### Tehnologii
-- Solidity pentru contract.
-- Ethers.js pentru frontend.
+
+### How to Use
+1. Open https://m-fun.vercel.app/ in your browser.
+2. Connect wallet on Fuji Testnet (Chain ID 43113).
+3. Fill in the fields and launch.
+
+
+### Technologies
+- Solidity for the contract.
+- Ethers.js fr the frontend.
 - Host: Vercel.
 
-### Instalare pentru dev
+### Instalation for dev
 - Clone repo: `git clone https://github.com/username/MMfun`
 - Open in VS Code, use Live Server.
 
