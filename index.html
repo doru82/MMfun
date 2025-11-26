@@ -82,6 +82,7 @@
     <div class="container">
         <h1>🚀 Launch Meme Coin on AVAX</h1>
         <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
+        <button onclick="disconnectWallet()" id="disconnectBtn" class="hidden" style="background: #f44336;">Disconnect</button>
         <div class="wallet-info" id="walletInfo"></div>
         
         <div id="launchOptions" class="hidden">
@@ -127,7 +128,7 @@
 
     <script>
         // ⚠️ ÎNLOCUIEȘTE ADRESA DE MAI JOS CU ADRESA NOULUI CONTRACT! ⚠️
-        const factoryAddress = '0xB018b6c6567b967C45b0F9a98a4dcD5E853c8F36';
+        const factoryAddress = 'PUNE_ADRESA_TA_AICI';
         
         const abiSimple = [
             "function launchToken(string memory name, string memory symbol, uint256 totalSupply) external payable returns (address)"
@@ -205,6 +206,8 @@
                 document.getElementById('launchForm').classList.remove('hidden');
                 connectBtn.innerHTML = '✅ Connected';
                 connectBtn.disabled = true;
+                connectBtn.classList.add('hidden');
+                document.getElementById('disconnectBtn').classList.remove('hidden');
                 statusDiv.innerHTML = '<div class="success">Ready! Choose launch type above 👆</div>';
                 
                 updateLiquidityInputs();
@@ -213,6 +216,21 @@
                 console.error('Connection error:', error);
                 statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
             }
+        }
+
+        function disconnectWallet() {
+            provider = null;
+            signer = null;
+            userAddress = null;
+            
+            document.getElementById('connectBtn').classList.remove('hidden');
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('connectBtn').innerHTML = 'Connect Wallet';
+            document.getElementById('disconnectBtn').classList.add('hidden');
+            document.getElementById('walletInfo').innerHTML = '';
+            document.getElementById('launchOptions').classList.add('hidden');
+            document.getElementById('launchForm').classList.add('hidden');
+            document.getElementById('status').innerHTML = '';
         }
 
         function selectOption(mode) {
