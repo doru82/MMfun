@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AVAX Meme Coin Launcher</title>
+    <title>AVAX Meme Coin Launcher - TESTNET</title>
     <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body { 
@@ -17,11 +17,38 @@
             background: white;
             border-radius: 20px;
             padding: 40px;
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        h1 { color: #333; margin-bottom: 30px; }
+        .disclaimer {
+            background: #d1ecf1;
+            border: 3px solid #17a2b8;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .disclaimer h3 { color: #0c5460; margin: 0 0 10px 0; }
+        .disclaimer ul { margin: 10px 0; padding-left: 20px; }
+        .disclaimer li { margin: 5px 0; color: #0c5460; }
+        .accept-terms {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .accept-terms input { margin-right: 10px; }
+        h1 { color: #333; margin-bottom: 10px; }
+        .beta-tag {
+            display: inline-block;
+            background: #17a2b8;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
         .option-box {
             background: #f8f9fa;
             border: 2px solid #e0e0e0;
@@ -35,7 +62,7 @@
         .option-box.selected { border-color: #4CAF50; background: #e8f5e9; }
         .option-box h3 { margin: 0 0 10px 0; color: #333; }
         .option-box p { margin: 5px 0; color: #666; font-size: 14px; }
-        input { 
+        input, select { 
             margin: 10px; 
             padding: 12px; 
             width: 100%; 
@@ -76,12 +103,58 @@
             margin: 15px 0;
         }
         .cost-display strong { color: #856404; }
+        .limits-info {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+        .test-badge {
+            background: #17a2b8;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Launch Meme Coin on AVAX</h1>
-        <button onclick="connectWallet()" id="connectBtn">Connect Wallet</button>
+        <h1>🚀 AVAX Meme Coin Launcher</h1>
+        <span class="beta-tag">FUJI TESTNET</span>
+        
+        <div class="test-badge">
+            <strong>🧪 TEST VERSION</strong><br>
+            Testing all mainnet features with free test AVAX<br>
+            Get test AVAX: <a href="https://core.app/tools/testnet-faucet" target="_blank" style="color: white;">Faucet</a>
+        </div>
+        
+        <div class="disclaimer">
+            <h3>⚠️ TESTING DISCLAIMER</h3>
+            <ul>
+                <li><strong>Testnet Only:</strong> This uses free test AVAX, not real money</li>
+                <li><strong>Testing Features:</strong> Liquidity lock, rate limits, supply caps</li>
+                <li><strong>No Real Value:</strong> Tokens created here have no monetary value</li>
+                <li><strong>Report Bugs:</strong> Help us improve before mainnet!</li>
+            </ul>
+            
+            <div class="accept-terms">
+                <input type="checkbox" id="acceptTerms">
+                <label for="acceptTerms"><strong>I understand this is testnet and I'm testing features</strong></label>
+            </div>
+        </div>
+        
+        <div class="limits-info">
+            <strong>🛡️ Testing These Limits:</strong><br>
+            • Max 1 trillion token supply<br>
+            • Daily limit: 50 launches<br>
+            • Minimum 30 days liquidity lock<br>
+            • Minimum 0.1 AVAX liquidity
+        </div>
+        
+        <button onclick="connectWallet()" id="connectBtn" disabled>Connect Wallet (Accept Terms First)</button>
         <button onclick="disconnectWallet()" id="disconnectBtn" class="hidden" style="background: #f44336;">Disconnect</button>
         <div class="wallet-info" id="walletInfo"></div>
         
@@ -93,59 +166,80 @@
                 <h3>🎯 Simple Launch</h3>
                 <p>✅ Deploy token only</p>
                 <p>✅ You get 100% of supply</p>
-                <p>💰 Cost: 0.5 AVAX</p>
+                <p>⚠️ No liquidity = harder to trade</p>
+                <p>💰 Cost: 0.5 test AVAX</p>
             </div>
             
             <div class="option-box selected" onclick="selectOption('liquidity')" id="liquidityOption">
-                <h3>💧 Launch + Auto-Liquidity</h3>
+                <h3>💧 Launch + Auto-Liquidity (TESTING)</h3>
                 <p>✅ Deploy + add liquidity on Pangolin</p>
-                <p>✅ 80% supply → liquidity pool</p>
+                <p>✅ 80% supply → liquidity pool (LOCKED)</p>
                 <p>✅ 20% supply → you (for marketing)</p>
                 <p>✅ Token tradeable immediately!</p>
-                <p>💰 Cost: 0.5 AVAX + liquidity AVAX</p>
+                <p>🔒 Testing liquidity lock (30-365 days)</p>
+                <p>💰 Cost: 0.5 + liquidity test AVAX</p>
             </div>
         </div>
         
         <div id="launchForm" class="hidden">
             <hr style="margin: 20px 0;">
-            <input id="name" placeholder="Token Name (ex: MyMeme)"><br>
-            <input id="symbol" placeholder="Symbol (ex: MM)"><br>
-            <input id="supply" type="number" placeholder="Total Supply (ex: 1000000)"><br>
+            <input id="name" placeholder="Token Name (ex: TestMeme)" maxlength="30"><br>
+            <input id="symbol" placeholder="Symbol (ex: TM)" maxlength="10"><br>
+            <input id="supply" type="number" placeholder="Total Supply (max 1 trillion)" max="1000000000000"><br>
             
             <div id="liquidityInputs" class="hidden">
                 <input id="liquidityAVAX" type="number" step="0.1" value="1" placeholder="AVAX for Liquidity (min 0.1)"><br>
+                
+                <select id="lockDays">
+                    <option value="30">Lock 30 days</option>
+                    <option value="60">Lock 60 days</option>
+                    <option value="90" selected>Lock 90 days</option>
+                    <option value="180">Lock 180 days</option>
+                    <option value="365">Lock 1 year</option>
+                </select><br>
+                
                 <div class="cost-display">
-                    <strong>Total Cost:</strong> <span id="totalCost">1.5 AVAX</span><br>
-                    <small>(0.5 AVAX fee + <span id="liqAmount">1</span> AVAX liquidity)</small>
+                    <strong>Total Cost:</strong> <span id="totalCost">1.5 test AVAX</span><br>
+                    <small>(0.5 AVAX fee + <span id="liqAmount">1</span> AVAX liquidity)</small><br>
+                    <strong>Lock Period:</strong> <span id="lockDisplay">90 days</span>
                 </div>
             </div>
             
-            <button onclick="launchToken()" id="launchBtn">Launch Token</button>
+            <button onclick="launchToken()" id="launchBtn">Launch Token (TEST)</button>
         </div>
         
         <div id="status"></div>
+        
+        <div style="margin-top: 30px; font-size: 12px; color: #666;">
+            <p>🧪 Testnet Version • Testing Mainnet Features • Free Test AVAX</p>
+        </div>
     </div>
 
     <script>
-        // ⚠️ ÎNLOCUIEȘTE ADRESA DE MAI JOS CU ADRESA NOULUI CONTRACT! ⚠️
-        const factoryAddress = 'PUNE_ADRESA_TA_AICI';
+        // ⚠️ SCHIMBĂ CU ADRESA CONTRACTULUI NOU DE PE FUJI! ⚠️
+        const factoryAddress = '0xAd0a081AfAfE422181e86BE8bB68D116bf9bc11c';
+        const CHAIN_ID = 43113; // Fuji Testnet
         
         const abiSimple = [
             "function launchToken(string memory name, string memory symbol, uint256 totalSupply) external payable returns (address)"
         ];
         
         const abiWithLiquidity = [
-            "function launchTokenWithLiquidity(string memory name, string memory symbol, uint256 totalSupply, uint256 liquidityAVAX) external payable returns (address, uint256)",
-            "event TokenLaunched(address indexed token, address indexed creator, string name, string symbol, address liquidityPair, uint256 liquidityAmount)"
+            "function launchTokenWithLiquidity(string memory name, string memory symbol, uint256 totalSupply, uint256 liquidityAVAX, uint256 lockDays) external payable returns (address, uint256, uint256)",
+            "event TokenLaunched(address indexed token, address indexed creator, string name, string symbol, address liquidityPair, uint256 liquidityAmount, uint256 lockId)"
         ];
         
         let provider, signer, userAddress;
         let selectedMode = 'liquidity';
+        
+        document.getElementById('acceptTerms').addEventListener('change', function() {
+            document.getElementById('connectBtn').disabled = !this.checked;
+        });
 
         window.addEventListener('load', async () => {
             if (typeof window.ethereum !== 'undefined') {
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) {
+                if (accounts.length > 0 && document.getElementById('acceptTerms').checked) {
                     await connectWallet();
                 }
             }
@@ -155,9 +249,14 @@
             const statusDiv = document.getElementById('status');
             const connectBtn = document.getElementById('connectBtn');
             
+            if (!document.getElementById('acceptTerms').checked) {
+                statusDiv.innerHTML = '<div class="error">Please accept terms first!</div>';
+                return;
+            }
+            
             try {
                 if (typeof window.ethereum === 'undefined') {
-                    statusDiv.innerHTML = '<div class="error">❌ No wallet detected! Please install MetaMask or Core Wallet.</div>';
+                    statusDiv.innerHTML = '<div class="error">❌ No wallet detected! Please install MetaMask.</div>';
                     return;
                 }
 
@@ -169,7 +268,7 @@
                 userAddress = await signer.getAddress();
                 
                 const network = await provider.getNetwork();
-                if (network.chainId !== 43113) {
+                if (network.chainId !== CHAIN_ID) {
                     statusDiv.innerHTML = '<div class="error">❌ Switch to Avalanche Fuji Testnet!</div>';
                     try {
                         await window.ethereum.request({
@@ -200,15 +299,13 @@
                 
                 document.getElementById('walletInfo').innerHTML = `
                     ✅ Connected: ${userAddress.substring(0,6)}...${userAddress.substring(38)}<br>
-                    💰 Balance: ${parseFloat(balanceInAvax).toFixed(4)} AVAX
+                    💰 Balance: ${parseFloat(balanceInAvax).toFixed(4)} test AVAX
                 `;
                 document.getElementById('launchOptions').classList.remove('hidden');
                 document.getElementById('launchForm').classList.remove('hidden');
-                connectBtn.innerHTML = '✅ Connected';
-                connectBtn.disabled = true;
                 connectBtn.classList.add('hidden');
                 document.getElementById('disconnectBtn').classList.remove('hidden');
-                statusDiv.innerHTML = '<div class="success">Ready! Choose launch type above 👆</div>';
+                statusDiv.innerHTML = '<div class="success">✅ Connected to Fuji Testnet! Choose launch type 👆</div>';
                 
                 updateLiquidityInputs();
                 
@@ -224,8 +321,7 @@
             userAddress = null;
             
             document.getElementById('connectBtn').classList.remove('hidden');
-            document.getElementById('connectBtn').disabled = false;
-            document.getElementById('connectBtn').innerHTML = 'Connect Wallet';
+            document.getElementById('connectBtn').disabled = !document.getElementById('acceptTerms').checked;
             document.getElementById('disconnectBtn').classList.add('hidden');
             document.getElementById('walletInfo').innerHTML = '';
             document.getElementById('launchOptions').classList.add('hidden');
@@ -247,26 +343,28 @@
             
             if (selectedMode === 'liquidity') {
                 liquidityInputs.classList.remove('hidden');
-                launchBtn.innerHTML = 'Launch + Add Liquidity';
+                launchBtn.innerHTML = 'Launch + Add Liquidity (TEST)';
                 updateCost();
             } else {
                 liquidityInputs.classList.add('hidden');
-                launchBtn.innerHTML = 'Launch Token (0.5 AVAX)';
+                launchBtn.innerHTML = 'Launch Token (TEST)';
             }
         }
 
         function updateCost() {
             const liqAVAX = parseFloat(document.getElementById('liquidityAVAX').value) || 1;
+            const lockDays = document.getElementById('lockDays').value;
             const total = 0.5 + liqAVAX;
-            document.getElementById('totalCost').innerHTML = total.toFixed(2) + ' AVAX';
+            document.getElementById('totalCost').innerHTML = total.toFixed(2) + ' test AVAX';
             document.getElementById('liqAmount').innerHTML = liqAVAX.toFixed(2);
+            document.getElementById('lockDisplay').innerHTML = lockDays + ' days';
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             const liqInput = document.getElementById('liquidityAVAX');
-            if (liqInput) {
-                liqInput.addEventListener('input', updateCost);
-            }
+            const lockSelect = document.getElementById('lockDays');
+            if (liqInput) liqInput.addEventListener('input', updateCost);
+            if (lockSelect) lockSelect.addEventListener('change', updateCost);
         });
 
         async function launchToken() {
@@ -287,25 +385,30 @@
                 return;
             }
             
+            if (supply > 1000000000000) {
+                statusDiv.innerHTML = '<div class="error">Max supply is 1 trillion!</div>';
+                return;
+            }
+            
             launchBtn.disabled = true;
-            launchBtn.innerHTML = 'Launching...';
+            launchBtn.innerHTML = 'Testing...';
             
             try {
                 if (selectedMode === 'simple') {
                     const contract = new ethers.Contract(factoryAddress, abiSimple, signer);
-                    statusDiv.innerHTML = '<div class="info">⏳ Deploying token...</div>';
+                    statusDiv.innerHTML = '<div class="info">⏳ Testing simple deploy...</div>';
                     
                     const tx = await contract.launchToken(name, symbol, supply, { 
                         value: ethers.utils.parseEther('0.5')
                     });
                     
-                    statusDiv.innerHTML = `<div class="info">⏳ Waiting for confirmation...<br>Tx: ${tx.hash}</div>`;
+                    statusDiv.innerHTML = `<div class="info">⏳ Waiting...<br>Tx: ${tx.hash}</div>`;
                     const receipt = await tx.wait();
                     const tokenAddr = receipt.events[0].args.token;
                     
                     statusDiv.innerHTML = `
                         <div class="success">
-                            🎉 Token deployed!<br><br>
+                            🎉 Test successful! Token deployed!<br><br>
                             <strong>Address:</strong> ${tokenAddr}<br><br>
                             <a href="https://testnet.snowtrace.io/address/${tokenAddr}" target="_blank">View on Snowtrace →</a>
                         </div>
@@ -314,38 +417,45 @@
                 } else {
                     const contract = new ethers.Contract(factoryAddress, abiWithLiquidity, signer);
                     const liqAVAX = document.getElementById('liquidityAVAX').value;
+                    const lockDays = document.getElementById('lockDays').value;
                     
                     if (parseFloat(liqAVAX) < 0.1) {
                         statusDiv.innerHTML = '<div class="error">Minimum 0.1 AVAX for liquidity!</div>';
                         launchBtn.disabled = false;
-                        launchBtn.innerHTML = 'Launch + Add Liquidity';
+                        launchBtn.innerHTML = 'Launch + Add Liquidity (TEST)';
                         return;
                     }
                     
                     const totalValue = 0.5 + parseFloat(liqAVAX);
                     
-                    statusDiv.innerHTML = '<div class="info">⏳ Deploying token + adding liquidity...</div>';
+                    statusDiv.innerHTML = '<div class="info">⏳ Testing deploy + liquidity + lock...</div>';
                     
                     const tx = await contract.launchTokenWithLiquidity(
                         name, 
                         symbol, 
                         supply,
                         ethers.utils.parseEther(liqAVAX),
+                        lockDays,
                         { value: ethers.utils.parseEther(totalValue.toString()) }
                     );
                     
-                    statusDiv.innerHTML = `<div class="info">⏳ Processing...<br>Tx: ${tx.hash}</div>`;
+                    statusDiv.innerHTML = `<div class="info">⏳ Processing test...<br>Tx: ${tx.hash}</div>`;
                     const receipt = await tx.wait();
                     
                     const event = receipt.events.find(e => e.event === 'TokenLaunched');
                     const tokenAddr = event.args.token;
+                    const lockId = event.args.lockId;
                     
                     statusDiv.innerHTML = `
                         <div class="success">
-                            🎉 Success! Token launched with liquidity!<br><br>
+                            🎉 Test successful! All features working!<br><br>
                             <strong>Token:</strong> ${tokenAddr}<br>
                             <strong>You received:</strong> 20% supply (${supply * 0.2} tokens)<br>
-                            <strong>Liquidity:</strong> 80% supply on Pangolin<br><br>
+                            <strong>Liquidity:</strong> 80% supply on Pangolin (LOCKED)<br>
+                            <strong>Lock ID:</strong> ${lockId.toString()} (${lockDays} days)<br><br>
+                            ✅ Liquidity lock working!<br>
+                            ✅ Rate limits working!<br>
+                            ✅ Supply cap working!<br><br>
                             <a href="https://testnet.snowtrace.io/address/${tokenAddr}" target="_blank">View on Snowtrace →</a><br>
                             <a href="https://app.pangolin.exchange/#/swap?outputCurrency=${tokenAddr}" target="_blank">Trade on Pangolin →</a>
                         </div>
@@ -357,8 +467,8 @@
                 document.getElementById('supply').value = '';
                 
             } catch (error) {
-                console.error('Launch error:', error);
-                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error('Test error:', error);
+                statusDiv.innerHTML = `<div class="error">❌ Test failed: ${error.message}<br><br>This helps us fix bugs before mainnet!</div>`;
             } finally {
                 launchBtn.disabled = false;
                 updateLiquidityInputs();
